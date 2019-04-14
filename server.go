@@ -3,53 +3,19 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+
+	"./handler"
 
 	"github.com/Shopify/sarama"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-type (
-	message struct {
-		ID   int    `json:"id"`
-		Body string `json:"body"`
-	}
-)
-
 const (
 	kafkaConn = "kafka:9092"
-	topic     = "test_topic"
+	//topic     = "test_topic"
 )
-
-var (
-	seq = 1
-)
-
-//----------
-// Handlers
-//----------
-
-func sendMessage(c echo.Context) error {
-	m := &message{
-		ID: seq,
-	}
-	if err := c.Bind(m); err != nil {
-		return err
-	}
-	seq++
-
-	// create producer
-	producer, err := initProducer()
-	if err != nil {
-		fmt.Println("Error producer: ", err.Error())
-		os.Exit(1)
-	}
-	publish(m.Body, producer)
-
-	return c.JSON(http.StatusCreated, m)
-}
 
 func initProducer() (sarama.SyncProducer, error) {
 	// setup sarama log to stdout
@@ -70,24 +36,6 @@ func initProducer() (sarama.SyncProducer, error) {
 	return prd, err
 }
 
-func publish(message string, producer sarama.SyncProducer) {
-	// publish sync
-	msg := &sarama.ProducerMessage{
-		Topic: topic,
-		Value: sarama.StringEncoder(message),
-	}
-	p, o, err := producer.SendMessage(msg)
-	if err != nil {
-		fmt.Println("Error publish: ", err.Error())
-	}
-
-	// publish async
-	//producer.Input() <- &sarama.ProducerMessage{
-
-	fmt.Println("Partition: ", p)
-	fmt.Println("Offset: ", o)
-}
-
 ///////////////////////////////////////////////////////////
 
 func main() {
@@ -97,8 +45,17 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// kafka connection
+	producer, err := initProducer()
+	if err != nil {
+		fmt.Println("Error producer: ", err.Error())
+		os.Exit(1)
+	}
+
+	h := handler.NewHandler(producer)
+
 	// Routes
-	e.POST("/kafka", sendMessage)
+	e.POST("/kafka", h.sendMessage)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
