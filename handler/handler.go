@@ -66,8 +66,7 @@ func publish(message string, producer sarama.SyncProducer) {
 	// publish async
 	//producer.Input() <- &sarama.ProducerMessage{
 
-	fmt.Println("Partition: ", p)
-	fmt.Println("Offset: ", o)
+    fmt.Printf("Partition: %d Offset: %d ", p, o)
 }
 
 func readFromENV(key, defaultVal string) string {
