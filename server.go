@@ -4,20 +4,26 @@ import (
 	"fmt"
 	"log"
 	"os"
-    
-    "github.com/tarosaiba/kafka-train-producer/handler"
+
+	"github.com/tarosaiba/kafka-train-producer/handler"
 
 	"github.com/Shopify/sarama"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-const (
-	kafkaConn = "kafka:9092"
-	//topic     = "test_topic"
-)
+//const (
+//	kafkaConn = "kafka:9092"
+//)
+
+var kafkaConn string
 
 func initProducer() (sarama.SyncProducer, error) {
+
+	kafkaConn = readFromENV("KAFKA_BROKER", "kafka:9092")
+
+	fmt.Println("Kafka Broker - ", kafkaConn)
+
 	// setup sarama log to stdout
 	sarama.Logger = log.New(os.Stdout, "", log.Ltime)
 
@@ -34,6 +40,14 @@ func initProducer() (sarama.SyncProducer, error) {
 	prd, err := sarama.NewSyncProducer([]string{kafkaConn}, config)
 
 	return prd, err
+}
+
+func readFromENV(key, defaultVal string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultVal
+	}
+	return value
 }
 
 ///////////////////////////////////////////////////////////
