@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	"./handler"
+    
+    "github.com/tarosaiba/kafka-train-producer/handler"
 
 	"github.com/Shopify/sarama"
 	"github.com/labstack/echo"
