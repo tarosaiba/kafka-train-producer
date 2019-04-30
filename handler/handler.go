@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/Shopify/sarama"
 	"github.com/labstack/echo"
@@ -23,10 +24,10 @@ var (
 	seq = 1
 )
 
-const (
-	//kafkaConn = "kafka:9092"
-	topic = "test_topic"
-)
+//const (
+//	topic = "test_topic"
+//)
+var topic string
 
 func NewHandler(prd sarama.SyncProducer) *handler {
 	return &handler{prd}
@@ -49,6 +50,9 @@ func (h handler) SendMessage(c echo.Context) error {
 
 func publish(message string, producer sarama.SyncProducer) {
 
+	// Topic
+	topic = readFromENV("KAFKA_TOPIC", "test_topic")
+
 	// publish sync
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
@@ -64,4 +68,12 @@ func publish(message string, producer sarama.SyncProducer) {
 
 	fmt.Println("Partition: ", p)
 	fmt.Println("Offset: ", o)
+}
+
+func readFromENV(key, defaultVal string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultVal
+	}
+	return value
 }
