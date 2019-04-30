@@ -5,7 +5,7 @@ RUN apk add --update --no-cache alpine-sdk bash ca-certificates \
       tar \
       git openssh openssl yajl-dev zlib-dev cyrus-sasl-dev openssl-dev build-base coreutils
 
-WORKDIR /go/src/app
+WORKDIR $GOPATH/src/github.com/tarosaiba/kafka-train-producer
 
 COPY . .
 
