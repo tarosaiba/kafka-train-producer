@@ -32,7 +32,7 @@ func NewHandler(prd sarama.SyncProducer) *handler {
 	return &handler{prd}
 }
 
-func (h handler) sendMessage(c echo.Context) error {
+func (h handler) SendMessage(c echo.Context) error {
 	m := &message{
 		ID: seq,
 	}
@@ -48,6 +48,7 @@ func (h handler) sendMessage(c echo.Context) error {
 }
 
 func publish(message string, producer sarama.SyncProducer) {
+
 	// publish sync
 	msg := &sarama.ProducerMessage{
 		Topic: topic,

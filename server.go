@@ -55,7 +55,7 @@ func main() {
 	h := handler.NewHandler(producer)
 
 	// Routes
-	e.POST("/kafka", h.sendMessage)
+	e.POST("/kafka", h.SendMessage)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
