@@ -3,55 +3,27 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
+
+	"github.com/tarosaiba/kafka-train-producer/handler"
 
 	"github.com/Shopify/sarama"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-type (
-	message struct {
-		ID   int    `json:"id"`
-		Body string `json:"body"`
-	}
-)
+//const (
+//	kafkaConn = "kafka:9092"
+//)
 
-const (
-	kafkaConn = "kafka:9092"
-	topic     = "test_topic"
-)
-
-var (
-	seq = 1
-)
-
-//----------
-// Handlers
-//----------
-
-func sendMessage(c echo.Context) error {
-	m := &message{
-		ID: seq,
-	}
-	if err := c.Bind(m); err != nil {
-		return err
-	}
-	seq++
-
-	// create producer
-	producer, err := initProducer()
-	if err != nil {
-		fmt.Println("Error producer: ", err.Error())
-		os.Exit(1)
-	}
-	publish(m.Body, producer)
-
-	return c.JSON(http.StatusCreated, m)
-}
+var kafkaConn string
 
 func initProducer() (sarama.SyncProducer, error) {
+
+	kafkaConn = readFromENV("KAFKA_BROKER", "kafka:9092")
+
+	fmt.Println("Kafka Broker - ", kafkaConn)
+
 	// setup sarama log to stdout
 	sarama.Logger = log.New(os.Stdout, "", log.Ltime)
 
@@ -70,22 +42,12 @@ func initProducer() (sarama.SyncProducer, error) {
 	return prd, err
 }
 
-func publish(message string, producer sarama.SyncProducer) {
-	// publish sync
-	msg := &sarama.ProducerMessage{
-		Topic: topic,
-		Value: sarama.StringEncoder(message),
+func readFromENV(key, defaultVal string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultVal
 	}
-	p, o, err := producer.SendMessage(msg)
-	if err != nil {
-		fmt.Println("Error publish: ", err.Error())
-	}
-
-	// publish async
-	//producer.Input() <- &sarama.ProducerMessage{
-
-	fmt.Println("Partition: ", p)
-	fmt.Println("Offset: ", o)
+	return value
 }
 
 ///////////////////////////////////////////////////////////
@@ -97,8 +59,17 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// kafka connection
+	producer, err := initProducer()
+	if err != nil {
+		fmt.Println("Error producer: ", err.Error())
+		os.Exit(1)
+	}
+
+	h := handler.NewHandler(producer)
+
 	// Routes
-	e.POST("/kafka", sendMessage)
+	e.POST("/kafka", h.SendMessage)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
