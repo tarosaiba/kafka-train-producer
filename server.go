@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/tarosaiba/kafka-train-producer/handler"
 
@@ -60,9 +61,9 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// kafka connection
-    // wait for kafka up
-    fmt.Println("Wait for Kafka up 20sec")
-    time.Sleep(20000 * time.Millisecond))
+	// wait for kafka up
+	fmt.Println("Wait for Kafka up 20sec")
+	time.Sleep(20000 * time.Millisecond)
 	producer, err := initProducer()
 	if err != nil {
 		fmt.Println("Error producer: ", err.Error())
