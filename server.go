@@ -29,7 +29,7 @@ func initProducer() (sarama.SyncProducer, error) {
 
 	// producer config
 	config := sarama.NewConfig()
-	config.Producer.Retry.Max = 5
+	config.Producer.Retry.Max = 10
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
 
@@ -60,6 +60,9 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// kafka connection
+    // wait for kafka up
+    fmt.Println("Wait for Kafka up 20sec")
+    time.Sleep(20000 * time.Millisecond))
 	producer, err := initProducer()
 	if err != nil {
 		fmt.Println("Error producer: ", err.Error())
